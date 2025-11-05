@@ -23,6 +23,10 @@ pub const ZOOM_FACTOR: f32 = 1.15; // Exponential zoom increment (1.15 = +15% pe
 pub const ZOOM_MIN: f32 = 0.1; // Minimum zoom level (allows seeing ~10x more cells)
 // ZOOM_MAX is calculated dynamically: min(window_w, window_h) / CELL_SIZE
 
+// Performances
+pub const PERF_SAMPLE_SIZE: usize = 60; // How many frames to average
+pub const PERF_LOG_INTERVAL_SECS: u64 = 1; // Display frequency  (seconds)
+
 // Panning configuration
 pub const PAN_STEP: f32 = 20.0; // Number of cells to move per arrow key press
 
@@ -30,7 +34,3 @@ pub const PAN_STEP: f32 = 20.0; // Number of cells to move per arrow key press
 pub const COLOR_CELL_ALIVE: u32 = 0xFFFFFFFF; // White - living cells
 pub const COLOR_CELL_DEAD: u32 = 0x101010FF; // Very dark gray - dead cells inside board
 pub const COLOR_OUT_OF_BOUNDS: u32 = 0x1A1A2EFF; // Dark blue-gray - area outside board bounds
-
-// Performances
-pub const PERF_SAMPLE_SIZE: usize = 60; // How many frames to average
-pub const PERF_LOG_INTERVAL_SECS: u64 = 1; // Display frequency  (seconds)
