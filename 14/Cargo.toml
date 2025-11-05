@@ -1,0 +1,12 @@
+[package]
+name = "step_14"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = "4.5.48"
+flexi_logger = { version = "0.31.7", features = ["async"] }
+log = "0.4.28"
+pixels = "0.15"
+rfd = "0.15.4"
+winit = { version = "0.30", features = ["rwh_06"] }

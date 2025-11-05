@@ -1,0 +1,9 @@
+[package]
+name = "rle_downloader"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+scraper = "0.24.0"
+headless_chrome = "1.0.18"
+indicatif = "0.18.0"

@@ -1,0 +1,4 @@
+target/
+.env
+logs/
+/99_rle_downloader/rle*/

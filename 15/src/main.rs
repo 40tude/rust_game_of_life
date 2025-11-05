@@ -1,0 +1,125 @@
+// src/main.rs
+
+use clap::{Arg, Command};
+// use flexi_logger::{Age, Cleanup, Criterion, Duplicate, FileSpec, Logger, Naming};
+use flexi_logger::Logger;
+use std::fs::File;
+use std::path::{Path, PathBuf};
+use step_15::{Result, app::state::App};
+use winit::event_loop::{ControlFlow, EventLoop};
+
+fn main() -> Result<()> {
+    setup_logging()?;
+    log::info!("Logger initialized.");
+
+    // Handle parameters and exit gracefully on error
+    let pattern_path = match handle_parameters() {
+        Ok(p) => {
+            log::info!("Using pattern file: {}", p.display());
+            p
+        }
+        Err(e) => {
+            log::error!("Failed to handle parameters: {:?}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let event_loop = EventLoop::new()?;
+    event_loop.set_control_flow(ControlFlow::Poll);
+
+    let mut app = App::try_new(&pattern_path)?;
+    log::info!("App initialized successfully, starting event loop...");
+
+    if let Err(e) = event_loop.run_app(&mut app) {
+        log::error!("Application error: {:?}", e);
+    }
+
+    log::info!("Application terminated.");
+    Ok(())
+}
+
+// See 14/src/main/setup_logging() to log in files etc.
+fn setup_logging() -> Result<()> {
+    // Logger::try_with_str("step_14=trace, wgpu_core=info, wgpu_hal=warn, wgpu=off, naga=off")?
+    //     // Folder ./logs (here workspace)
+    //     .log_to_file(FileSpec::default().basename("step_14").directory("./logs"))
+    //     .rotate(
+    //         // Criterion::Size(10_000_000), // 10 Mo
+    //         // Criterion::Age(Age::Day),  // create a new file every day
+    //         Criterion::AgeOrSize(Age::Day, 1_000_000),
+    //         Naming::Numbers,          // app.log, app.r001.log, app.r002.log, ...
+    //         Cleanup::KeepLogFiles(2), // keep the last 2 + current
+    //     )
+    //     .duplicate_to_stdout(Duplicate::All) // try `Duplicate::Info` to display Info and above
+    //     // .write_mode(WriteMode::Async) // async does NOT work under WIN 11
+    //     .write_mode(WriteMode::BufferAndFlush) // kind of compromise between async and sync
+    //     .start()?;
+
+    Logger::try_with_str("step_15=trace, wgpu_core=info, wgpu_hal=warn, wgpu=off, naga=off")?.start()?; // console only
+
+    log::trace!("This is a TRACE message");
+    log::debug!("This is a DEBUG message");
+    log::info!("This is an INFO message");
+    log::warn!("This is a WARNING message");
+    log::error!("This is an ERROR message");
+
+    Ok(())
+}
+
+// Handle CLI parameters and return parsed values if valid
+fn handle_parameters() -> Result<PathBuf> {
+    let cli = Command::new("step_13")
+        .version("0.1.0")
+        .author("Philippe <philippe@gmail.com>")
+        .about("Simple Game of Life")
+        .arg(
+            Arg::new("pattern")
+                .short('p')
+                .long("pattern")
+                .value_name("PATTERN")
+                .value_parser(clap::value_parser!(PathBuf)) // specify the PathBuf type
+                .help("Path to the pattern file without .rle extension (e.g. \"rle/gosperglidergun\")")
+                .required(false),
+        )
+        .after_help("Example: step_11 --pattern rle/canadagoose");
+
+    let matches = cli.clone().get_matches();
+
+    // Try to get and parse the path to .rle
+    let path_to_pattern = match matches.get_one::<PathBuf>("pattern") {
+        Some(p) => {
+            let mut path = p.clone(); // Clone to get an owned PathBuf
+            path.set_extension("rle");
+            if !is_valid_file_path(&path) {
+                let err_msg = format!("Invalid path to pattern file: {:?}", path);
+                log::error!("{err_msg}");
+                return Err(err_msg.into());
+            }
+            path
+        }
+        None => {
+            // Use default pattern from config if no argument provided
+            let path = PathBuf::from(step_15::config::DEFAULT_PATTERN_PATH);
+            if !is_valid_file_path(&path) {
+                let err_msg = format!("Default pattern file not found: {:?}", path);
+                log::error!("{err_msg}");
+                return Err(err_msg.into());
+            }
+            log::info!("No pattern specified, using default: {:?}", path);
+            path
+        }
+    };
+
+    Ok(path_to_pattern)
+}
+
+// Check if the path points to a valid file
+fn is_valid_file_path(path: &Path) -> bool {
+    // Check if path exists and is a file
+    if !path.exists() || !path.is_file() {
+        return false;
+    }
+
+    // Try opening the file to ensure it's accessible (permissions OK)
+    File::open(path).is_ok()
+}
