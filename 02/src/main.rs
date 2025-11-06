@@ -70,9 +70,9 @@ impl ApplicationHandler for App {
             WindowEvent::KeyboardInput {
                 event: KeyEvent {
                     logical_key,
-                    state: ElementState::Pressed,
-                    repeat: false,
-                    ..
+                    state: ElementState::Pressed, // we want that the key is pressed
+                    repeat: false, // Not a repetition (key held down)
+                    .. // Ignore: text, location, platform_specific
                 },
                 ..
             } => {
